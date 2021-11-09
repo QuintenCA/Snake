@@ -1,0 +1,175 @@
+import turtle
+import time
+import random
+
+segments = []
+score = 0
+highScore = 0
+deathCounter = 0
+maxSpeed = 50
+startSpeed = 1
+speedRate = 1
+
+window = turtle.Screen()
+window.title("Snake Game")
+window.bgcolor("gray")
+window.setup(width=600, height=600)
+turtle.tracer(0,0)
+
+SHead = turtle.Turtle()
+SHead.shape("square")
+SHead.color("teal")
+SHead.penup()
+SHead.goto(0, 0)
+SHead.direction = "stop"
+
+food = turtle.Turtle()
+food.shape("square")
+food.color("red")
+food.penup()
+food.shapesize(0.50, 0.50)
+food.goto(0, 100)
+
+scoreBoard = turtle.Turtle()
+scoreBoard.shape("square")
+scoreBoard.color("white")
+scoreBoard.penup()
+scoreBoard.hideturtle()
+scoreBoard.goto(0, 250)
+scoreBoard.write("Score: 0\t High Score: 0\t",
+                 align="center",
+                 font=("Verdana", 18, "bold"))
+
+deathBoard = turtle.Turtle()
+deathBoard.shape("square")
+deathBoard.color("white")
+deathBoard.penup()
+deathBoard.hideturtle()
+deathBoard.goto(0, 200)
+deathBoard.write("Death: {}\t".format(deathCounter), align="center", font=("Verdana", 16, "bold"))
+
+
+def up():
+    if (SHead.direction != "down" and SHead.direction != "up"):
+        SHead.direction = "up"
+        if not moved:
+          move()
+
+def down():
+    if (SHead.direction != "up" and SHead.direction != "down"):
+        SHead.direction = "down"
+        if not moved:
+          move()
+
+def left():
+    if (SHead.direction != "right" and SHead.direction != "left"):
+        SHead.direction = "left"
+        if not moved:
+          move()
+
+def right():
+    if (SHead.direction != "left" and SHead.direction != "right"):
+        SHead.direction = "right"
+        if not moved:
+          move()
+
+def move():
+    global delay
+    global moved
+    global deathCounter
+    moved = True
+
+    if len(segments) > 0:
+      segments[0].goto(int(SHead.xcor()), int(SHead.ycor()))
+      segments.append(segments[0])
+      segments.pop(0)
+
+    if (SHead.direction == "up"):
+        y = SHead.ycor()
+        SHead.sety(y + 20)
+
+    if (SHead.direction == "down"):
+        y = SHead.ycor()
+        SHead.sety(y - 20)
+
+    if (SHead.direction == "right"):
+        x = SHead.xcor()
+        SHead.setx(x + 20)
+
+    if (SHead.direction == "left"):
+        x = SHead.xcor()
+        SHead.setx(x - 20)
+
+    for segment in segments:
+        if (segment.distance(SHead) < 20):
+          reset()
+
+def reset():
+  global deathCounter
+  global speed
+  global moved
+
+  deathCounter += 1
+  deathBoard.clear()
+  deathBoard.write("Death: {}\t".format(deathCounter), align="center", font=("Verdana", 16, "bold"))
+  time.sleep(1)
+  SHead.goto(0, 0)
+  SHead.direction = "stop"
+  speed = startSpeed
+  moved = False
+  
+  for segment in segments:
+      segment.goto(1000, 1000)
+  segments.clear()
+
+
+# Start of Game
+window.listen()
+window.onkeypress(up, "Up")
+window.onkeypress(down, "Down")
+window.onkeypress(left, "Left")
+window.onkeypress(right, "Right")
+
+moved = False
+speed = startSpeed
+
+# Main game loop
+while True:
+    delay = (1 / maxSpeed) + ((maxSpeed - speed) * 0.001)
+
+    window.update()
+    if (SHead.xcor() > 290) or (SHead.xcor() < -290) or (
+    SHead.ycor() > 290) or (SHead.ycor() < -290):
+        reset()
+
+    if (SHead.distance(food) < 15):
+        x = random.randint(-270, 270)
+        y = random.randint(-270, 270)
+        food.goto(x, y)
+
+        newSegments = turtle.Turtle()
+        newSegments.shape("square")
+        newSegments.color("light gray")
+        newSegments.penup()
+        newSegments.goto(int(SHead.xcor()), int(SHead.ycor()))
+        newSegments.shapesize(1.00, 1.00)
+        segments.append(newSegments)
+
+        if speed <= maxSpeed:
+          speed = speed + speedRate
+        else:
+          speed = maxSpeed
+
+        score += 10
+        if score > highScore:
+            highScore = score
+        scoreBoard.clear()
+        scoreBoard.write("Score: {}\t High Score: {}".format(score, highScore),
+                         align="center",
+                         font=("Verdana", 18, "bold"))
+    
+    if moved:
+      moved = False  
+    else:
+      move()
+    time.sleep(delay)
